@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lcomputerstudy.example.mapper.CommentMapper">
+	<select id="selectCommentList" parameterType = "Comment" resultType="Comment">
+		SELECT c_num as cNum,
+		b_id as bId,
+		c_content as commentContent,
+		c_writer as commentWriter,
+		c_group as commentGroup,
+		c_order as commentOrder,
+		c_depth as commentDepth
+		FROM lc_comment
+		WHERE b_id = #{bId}
+		ORDER BY commentGroup DESC, commentOrder ASC, commentDepth ASC
+	</select>
+	<insert id="commentAction" parameterType="Comment">
+		<selectKey keyProperty="getNext" resultType="int" order="BEFORE">
+	  	SELECT MAX(c_num)+1 c_num
+		FROM lc_comment
+	  	</selectKey>
+	  	INSERT INTO lc_comment (
+	  		c_num,
+	  		b_id,
+	  		c_content,
+	  		c_writer,
+	  		c_group,
+	  		c_order,
+	  		c_depth
+	  	) VALUES (
+	  		#{getNext},
+	  		#{bId},
+	  		#{commentContent},
+	  		#{commentWriter},
+	  		#{getNext},
+	  		1,
+	  		0
+	  	)
+	</insert>
+	<insert id="commentReplyAction" parameterType="Comment">
+		<selectKey keyProperty="getNext" resultType="int" order="BEFORE">
+	  	SELECT MAX(c_num)+1 c_num
+		FROM lc_comment
+	  	</selectKey>
+	  	INSERT INTO lc_comment (
+	  		c_num,
+	  		b_id,
+	  		c_content,
+	  		c_writer,
+	  		c_group,
+	  		c_order,
+	  		c_depth
+	  	) VALUES (
+	  		#{getNext},
+	  		#{bId},
+	  		#{commentContent},
+	  		#{commentWriter},
+	  		#{commentGroup},
+	  		#{commentOrder}+1,
+	  		#{commentDepth}+1
+	  	)
+	</insert>
+	<update id="commentUpdateAction" parameterType="Comment">
+	UPDATE lc_comment
+	SET c_content = #{commentContent}
+	WHERE b_id = #{bId} AND c_num = #{cNum}
+	</update>
+	<delete id="commentDelete" parameterType = "Comment">
+	DELETE FROM lc_comment
+	WHERE b_id = #{bId} AND c_num = #{cNum}
+	</delete>
+</mapper>

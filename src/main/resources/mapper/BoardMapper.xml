@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lcomputerstudy.example.mapper.BoardMapper">
+	<select id="selectBoardList" parameterType = "Pagination" resultType="Board">
+		      SELECT        @ROWNUM := @ROWNUM - 1 as ROWNUM,
+		      						 b_id as bId,
+					                 b_title as bTitle,
+					                 b_content as bContent,
+					                 b_writer as bWriter,
+					                 b_datetime as bDatetime,
+					                 b_brdhit as bBrdhit,
+					                 b_order as bOrder,
+					                 b_group as bGroup,
+					                 b_depth as bDepth
+		      FROM            lc_board
+		      INNER JOIN (SELECT @ROWNUM := (SELECT COUNT(*)- #{pageNum} +1 FROM lc_board)) as tb
+		      <if test="search.find != null and search.search != null">
+		      WHERE ${search.find} like concat("%", #{search.search}, "%")
+		      </if>
+			  ORDER BY bGroup DESC,bOrder ASC, bDepth ASC, bId DESC
+		      LIMIT #{pageNum}, #{perPage}
+	   </select>
+	  <select id="article" parameterType="Board" resultType="Board">
+	  	  SELECT         	b_id as bId,
+	  	  						 b_title as bTitle,
+				                 b_content as bContent,
+				                 b_writer as bWriter,
+				                 b_datetime as bDatetime,
+				                 b_brdhit as bBrdhit
+	      FROM            lc_board
+	      WHERE          b_id = #{bId}
+	  </select>
+	  <insert id="writeAction" parameterType="Board">
+	  	<selectKey keyProperty="getNext" resultType="int" order="BEFORE">
+	  	SELECT MAX(B_ID)+1 B_ID
+		FROM LC_board 
+	  	</selectKey>
+	  		INSERT INTO lc_board (
+	  			b_id,
+	  			b_title,
+	  			b_content,
+	  			b_writer,
+	  			b_brdhit,
+	  			b_group,
+	  			b_order,
+	  			b_depth
+	  		) VALUES (
+	  			#{getNext},
+	  			#{bTitle},
+	  			#{bContent},
+	  			#{bWriter},
+	  			1,
+	  			#{getNext},
+	  			1,
+	  			0
+	  		)
+	  </insert>
+	  <update id="countView" parameterType= "int">
+	  	UPDATE lc_board
+	  	SET b_brdhit = b_brdhit + 1
+	  	WHERE b_id = #{bId}
+	  </update>
+	  <select id="boardCount" parameterType="Search" resultType= "int">
+		 SELECT COUNT(*) as count
+		 FROM lc_board
+		 <if test="find != null and search != null">
+		 WHERE ${find} like concat("%", #{search}, "%")
+		 </if>
+	  </select>
+	  <select id="reply" parameterType="Board" resultType= "Board">
+	  	SELECT         	b_id as bId,
+	  	  				b_group as bGroup,
+	  	  				b_order as bOrder,
+	  	  				b_depth as bDepth
+	      FROM            lc_board
+	      WHERE          b_id = #{bId}
+	  </select>
+	  <insert id="replyAction" parameterType="Board">
+	  	<selectKey keyProperty="getNext" resultType="int" order="BEFORE">
+	  	SELECT MAX(B_ID)+1 B_ID
+		FROM LC_board 
+	  	</selectKey>
+	  		INSERT INTO lc_board (
+	  			b_id,
+	  			b_title,
+	  			b_content,
+	  			b_writer,
+	  			b_brdhit,
+	  			b_group,
+	  			b_order,
+	  			b_depth
+	  		) VALUES (
+	  			#{getNext},
+	  			#{bTitle},
+	  			#{bContent},
+	  			#{bWriter},
+	  			1,
+	  			#{bGroup},
+	  			#{bOrder}+1,
+	  			#{bDepth}+1
+	  		)
+	  </insert>
+	  <update id="updateAction" parameterType="Board">
+	  UPDATE lc_board
+	  SET b_title = #{bTitle},
+	  	  b_content = #{bContent}
+	  WHERE b_id = #{bId}
+	  </update>
+	  <delete id="deleteAction" parameterType= "int">
+	  DELETE from lc_board
+	  where b_id = #{bId}
+	  </delete>
+</mapper>

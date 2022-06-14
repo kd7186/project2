@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lcomputerstudy.example.mapper.FileMapper">
+	<insert id="fileInsert" parameterType="com.lcomputerstudy.example.domain.FileVO">
+	<selectKey keyProperty="getNext" resultType="int" order="BEFORE">
+	  	SELECT MAX(B_ID) B_ID
+		FROM LC_board 
+	</selectKey>
+	   INSERT INTO lc_file (
+	   	 f_id,
+	   	 b_id,
+	     fileName,
+	     fileRealName,
+	     fileUrl
+      ) VALUES (
+      	 #{fId},
+      	 #{getNext},
+         #{fileName},
+         #{fileRealName},
+         #{fileUrl}
+      )
+   </insert>
+   <select id="selectFileList" parameterType= "FileVO" resultType="com.lcomputerstudy.example.domain.FileVO">
+    SELECT
+        *
+    FROM lc_file
+    WHERE b_id = #{bId}
+   </select>
+</mapper>
